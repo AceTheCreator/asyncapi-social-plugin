@@ -3,7 +3,7 @@ import {
   PluginAPI,
   PluginSlot,
 } from "@asyncapi/react-component";
-import { SocialMediaIcons } from "./components/SocialMediaIcons";
+import SocialMediaIcons from "./components/SocialMediaIcons";
 
 const SocialMediaPlugin: AsyncApiPlugin = {
   name: "asyncapi-social-media",
