@@ -1,12 +1,22 @@
 import React, { useState } from "react";
 import { PluginContext } from "@asyncapi/react-component";
-import { TwitterIcon, LinkedInIcon, GitHubIcon, Mastodon } from "../icons";
+import {
+  TwitterIcon,
+  LinkedInIcon,
+  GitHubIcon,
+  Mastodon,
+  WebIcon,
+} from "../icons";
 
 const SocialMediaIcons: React.FC<{ context: PluginContext }> = ({
   context,
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const schema = context.schema;
-  if (!schema) return null;
+
+  if (!schema || typeof schema === "string" || !("extensions" in schema)) {
+    return null;
+  }
 
   const extensions = schema.extensions();
 
@@ -17,50 +27,139 @@ const SocialMediaIcons: React.FC<{ context: PluginContext }> = ({
     "x-mastodon": Mastodon,
   };
 
-  const extensionsArray = extensions?.collections || [];
+  const extensionsArray = extensions ? Array.from(extensions) : [];
 
   const socialLinks = extensionsArray.filter((ext: any) => {
     const extName = ext?._meta?.id;
     return extName && extName in iconMap;
   });
 
-  console.log(socialLinks);
-
   if (socialLinks.length === 0) return null;
 
   const containerStyle: React.CSSProperties = {
     display: "flex",
-    gap: "26px",
     alignItems: "center",
-    marginTop: "16px",
+    position: "relative",
+  };
+
+  const webIconContainerStyle: React.CSSProperties = {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+    opacity: isExpanded ? 0.9 : 1,
+    transition: "all 0.3s ease",
+    transform: isExpanded ? "scale(1.08)" : "scale(1)",
+    border: "2px solid #cbd5e1",
+    borderRadius: "50%",
+    padding: "5px",
+    backgroundColor: isExpanded ? "#f1f5f9" : "transparent",
+    boxShadow: isExpanded
+      ? "0 4px 8px rgba(0, 0, 0, 0.12)"
+      : "0 2px 4px rgba(0, 0, 0, 0.08)",
+  };
+
+  const socialLinksContainerStyle: React.CSSProperties = {
+    display: "flex",
+    gap: "10px",
+    height: "100px",
+    alignItems: "center",
+    marginLeft: isExpanded ? "20px" : "0",
+    maxWidth: isExpanded ? `${socialLinks.length * 50}px` : "0",
+    opacity: isExpanded ? 1 : 0,
+    transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
   };
 
   return (
-    <div style={containerStyle}>
-      {socialLinks.map((ext: any) => {
-        const extName = ext._meta.id;
-        const Icon = iconMap[extName];
-        const url = ext._json;
+    <div
+      style={containerStyle}
+      onMouseEnter={() => setIsExpanded(true)}
+      onMouseLeave={() => setIsExpanded(false)}
+    >
+      <div style={webIconContainerStyle}>
+        <WebIcon />
+      </div>
+      <div style={socialLinksContainerStyle}>
+        {socialLinks.map((ext: any) => {
+          const extName = ext._meta.id;
+          const Icon = iconMap[extName];
+          const url = ext._json;
 
-        return <SocialLink key={extName} href={url} Icon={Icon} />;
-      })}
+          return (
+            <SocialLink
+              key={extName}
+              href={url}
+              Icon={Icon}
+              extName={extName}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 };
 
-const SocialLink: React.FC<{ href: string; Icon: React.FC }> = ({
-  href,
-  Icon,
-}) => {
+const brandColors: Record<
+  string,
+  { default: string; hover: string; border: string }
+> = {
+  "x-x": {
+    default: "#64748b",
+    hover: "#000000",
+    border: "#000000",
+  },
+  "x-linkedin": {
+    default: "#64748b",
+    hover: "#0A66C2",
+    border: "#0A66C2",
+  },
+  "x-github": {
+    default: "#64748b",
+    hover: "#24292e",
+    border: "#24292e",
+  },
+  "x-mastodon": {
+    default: "#64748b",
+    hover: "#6364FF",
+    border: "#6364FF",
+  },
+};
+
+const SocialLink: React.FC<{
+  href: string;
+  Icon: React.FC;
+  extName: string;
+}> = ({ href, Icon, extName }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const colors = brandColors[extName] || {
+    default: "#64748b",
+    hover: "#64748b",
+    border: "#94a3b8",
+  };
 
   const linkStyle: React.CSSProperties = {
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
-    opacity: isHovered ? 0.7 : 1,
-    transition: "opacity 0.2s ease-in-out",
+    opacity: isHovered ? 1 : 0.85,
+    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
     textDecoration: "none",
+    transform: isHovered
+      ? "translateY(-2px) scale(1.08)"
+      : "translateY(0) scale(1)",
+    border: `2px solid ${isHovered ? colors.border : "#e2e8f0"}`,
+    borderRadius: "50%",
+    padding: "12px",
+    backgroundColor: isHovered ? "#f8fafc" : "transparent",
+    boxShadow: isHovered
+      ? "0 4px 8px rgba(0, 0, 0, 0.12)"
+      : "0 1px 3px rgba(0, 0, 0, 0.06)",
+  };
+
+  const iconStyle: React.CSSProperties = {
+    display: "flex",
+    color: isHovered ? colors.hover : colors.default,
+    transition: "color 0.3s ease",
   };
 
   return (
@@ -72,7 +171,9 @@ const SocialLink: React.FC<{ href: string; Icon: React.FC }> = ({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <Icon />
+      <div style={iconStyle}>
+        <Icon />
+      </div>
     </a>
   );
 };
