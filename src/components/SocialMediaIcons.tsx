@@ -13,7 +13,10 @@ const SocialMediaIcons: React.FC<{ context: PluginContext }> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const schema = context.schema;
-  if (!schema) return null;
+
+  if (!schema || typeof schema === "string" || !("extensions" in schema)) {
+    return null;
+  }
 
   const extensions = schema.extensions();
 
@@ -24,14 +27,12 @@ const SocialMediaIcons: React.FC<{ context: PluginContext }> = ({
     "x-mastodon": Mastodon,
   };
 
-  const extensionsArray = extensions?.collections || [];
+  const extensionsArray = extensions ? Array.from(extensions) : [];
 
   const socialLinks = extensionsArray.filter((ext: any) => {
     const extName = ext?._meta?.id;
     return extName && extName in iconMap;
   });
-
-  console.log(socialLinks);
 
   if (socialLinks.length === 0) return null;
 
@@ -52,7 +53,7 @@ const SocialMediaIcons: React.FC<{ context: PluginContext }> = ({
     transform: isExpanded ? "scale(1.08)" : "scale(1)",
     border: "2px solid #cbd5e1",
     borderRadius: "50%",
-    padding: "8px",
+    padding: "5px",
     backgroundColor: isExpanded ? "#f1f5f9" : "transparent",
     boxShadow: isExpanded
       ? "0 4px 8px rgba(0, 0, 0, 0.12)"
@@ -99,7 +100,6 @@ const SocialMediaIcons: React.FC<{ context: PluginContext }> = ({
   );
 };
 
-// Brand color mapping
 const brandColors: Record<
   string,
   { default: string; hover: string; border: string }

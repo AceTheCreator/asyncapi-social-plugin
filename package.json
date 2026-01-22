@@ -25,13 +25,14 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@asyncapi/react-component": "^3.0.0",
     "@types/node": "^25.0.3",
     "@types/react": "^19.2.7",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3"
   },
   "peerDependencies": {
-    "@asyncapi/react-component": "file:../../projects/asyncapi-react/library/asyncapi-react-component-2.6.5.tgz",
+    "@asyncapi/react-component": "^3.0.0",
     "react": ">=18.0.0"
   }
 }
