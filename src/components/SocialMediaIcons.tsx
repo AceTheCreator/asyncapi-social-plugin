@@ -39,7 +39,6 @@ const SocialMediaIcons: React.FC<{ context: PluginContext }> = ({
   const containerStyle: React.CSSProperties = {
     display: "flex",
     alignItems: "center",
-    marginTop: "20px",
     position: "relative",
   };
 
