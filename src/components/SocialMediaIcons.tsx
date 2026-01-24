@@ -1,12 +1,7 @@
 import React, { useState } from "react";
 import { PluginContext } from "@asyncapi/react-component";
-import {
-  TwitterIcon,
-  LinkedInIcon,
-  GitHubIcon,
-  Mastodon,
-  WebIcon,
-} from "../icons";
+import { WebIcon } from "../icons";
+import { SOCIAL_ICONS } from "../config/socialIcons";
 
 const SocialMediaIcons: React.FC<{ context: PluginContext }> = ({
   context,
@@ -19,19 +14,11 @@ const SocialMediaIcons: React.FC<{ context: PluginContext }> = ({
   }
 
   const extensions = schema.extensions();
-
-  const iconMap: Record<string, React.FC> = {
-    "x-x": TwitterIcon,
-    "x-linkedin": LinkedInIcon,
-    "x-github": GitHubIcon,
-    "x-mastodon": Mastodon,
-  };
-
   const extensionsArray = extensions ? Array.from(extensions) : [];
 
   const socialLinks = extensionsArray.filter((ext: any) => {
     const extName = ext?._meta?.id;
-    return extName && extName in iconMap;
+    return extName && extName in SOCIAL_ICONS;
   });
 
   if (socialLinks.length === 0) return null;
@@ -82,15 +69,15 @@ const SocialMediaIcons: React.FC<{ context: PluginContext }> = ({
       <div style={socialLinksContainerStyle}>
         {socialLinks.map((ext: any) => {
           const extName = ext._meta.id;
-          const Icon = iconMap[extName];
+          const config = SOCIAL_ICONS[extName];
           const url = ext._json;
 
           return (
             <SocialLink
               key={extName}
               href={url}
-              Icon={Icon}
-              extName={extName}
+              Icon={config.icon}
+              colors={config.colors}
             />
           );
         })}
@@ -99,43 +86,18 @@ const SocialMediaIcons: React.FC<{ context: PluginContext }> = ({
   );
 };
 
-const brandColors: Record<
-  string,
-  { default: string; hover: string; border: string }
-> = {
-  "x-x": {
-    default: "#64748b",
-    hover: "#000000",
-    border: "#000000",
-  },
-  "x-linkedin": {
-    default: "#64748b",
-    hover: "#0A66C2",
-    border: "#0A66C2",
-  },
-  "x-github": {
-    default: "#64748b",
-    hover: "#24292e",
-    border: "#24292e",
-  },
-  "x-mastodon": {
-    default: "#64748b",
-    hover: "#6364FF",
-    border: "#6364FF",
-  },
-};
+interface SocialLinkColors {
+  default: string;
+  hover: string;
+  border: string;
+}
 
 const SocialLink: React.FC<{
   href: string;
   Icon: React.FC;
-  extName: string;
-}> = ({ href, Icon, extName }) => {
+  colors: SocialLinkColors;
+}> = ({ href, Icon, colors }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const colors = brandColors[extName] || {
-    default: "#64748b",
-    hover: "#64748b",
-    border: "#94a3b8",
-  };
 
   const linkStyle: React.CSSProperties = {
     display: "inline-flex",
