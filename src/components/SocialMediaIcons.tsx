@@ -43,14 +43,15 @@ const resolveSocialUrl = (extensionName: string, rawValue: string): string => {
       return url.endsWith("/") ? url : `${url}/`;
     }
     case "x-linkedin": {
-      const httpsCandidate = ensureHttpsForDomain(value, "www.linkedin.com");
-      if (httpsCandidate) return httpsCandidate.endsWith("/") ? httpsCandidate : `${httpsCandidate}/`;
-      // Handle bare "linkedin.com/..." too
-      const httpsCandidate2 = ensureHttpsForDomain(value, "linkedin.com");
-      if (httpsCandidate2) return httpsCandidate2.endsWith("/") ? httpsCandidate2 : `${httpsCandidate2}/`;
-      const slug = stripDomain(value.replace(/^@/, "")).replace(/^\/+/, "");
-      const url = `https://www.linkedin.com/in/${slug}`;
-      return url.endsWith("/") ? url : `${url}/`;
+      // For LinkedIn, we cannot guess between individual (/in/...), company (/company/...),
+      // or other paths. Hence Require the user to provide the full URL.
+      // Accept bare domain without protocol and normalize by prefixing https://
+      const httpsCandidate =
+        ensureHttpsForDomain(value, "www.linkedin.com") ||
+        ensureHttpsForDomain(value, "linkedin.com");
+      if (httpsCandidate) return httpsCandidate; // preserve as-is (no trailing slash enforcement)
+      // Otherwise, return empty string to indicate unresolved URL
+      return "";
     }
     case "x-mastodon": {
       const httpsCandidate = ensureHttpsForDomain(value, "mastodon.social");
@@ -134,6 +135,7 @@ const SocialMediaIcons: React.FC<{ context: PluginContext }> = ({
           const raw = ext._json;
           const url = resolveSocialUrl(extName, typeof raw === "string" ? raw : String(raw));
 
+          if (!url) return null;
           return (
             <SocialLink
               key={extName}
