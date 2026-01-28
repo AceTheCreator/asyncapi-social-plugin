@@ -3,6 +3,67 @@ import { PluginContext } from "@asyncapi/react-component";
 import { WebIcon } from "../icons";
 import { SOCIAL_ICONS } from "../config/socialIcons";
 
+const resolveSocialUrl = (extensionName: string, rawValue: string): string => {
+  const value = String(rawValue || "").trim();
+  if (!value) return "";
+
+  // If already a full URL, return as-is
+  if (/^https?:\/\//i.test(value)) return value;
+
+  // Helper: strip domain if the user pasted "domain.tld/path" without protocol
+  const stripDomain = (slug: string): string => {
+    if (/^[^\/]+\.[^\/]+\/.+/.test(slug)) {
+      const idx = slug.indexOf("/");
+      return slug.slice(idx + 1);
+    }
+    return slug;
+  };
+
+  // Helper: ensure leading https:// for "domain.tld/path" without protocol
+  const ensureHttpsForDomain = (slug: string, domain: string): string | null => {
+    if (slug.toLowerCase().startsWith(`${domain.toLowerCase()}/`)) {
+      return `https://${slug}`;
+    }
+    return null;
+  };
+
+  // HANDLE ALL THE CASES FOR THE SOCIAL MEDIA ICONS
+  switch (extensionName) {
+    case "x-x": {
+      const httpsCandidate = ensureHttpsForDomain(value, "x.com");
+      if (httpsCandidate) return httpsCandidate;
+      const slug = stripDomain(value.replace(/^@/, "")).replace(/^\/+/, "");
+      return `https://x.com/${slug}`;
+    }
+    case "x-instagram": {
+      const httpsCandidate = ensureHttpsForDomain(value, "instagram.com");
+      if (httpsCandidate) return httpsCandidate.endsWith("/") ? httpsCandidate : `${httpsCandidate}/`;
+      let slug = stripDomain(value.replace(/^@/, "")).replace(/^\/+/, "");
+      const url = `https://www.instagram.com/${slug}`;
+      return url.endsWith("/") ? url : `${url}/`;
+    }
+    case "x-linkedin": {
+      const httpsCandidate = ensureHttpsForDomain(value, "www.linkedin.com");
+      if (httpsCandidate) return httpsCandidate.endsWith("/") ? httpsCandidate : `${httpsCandidate}/`;
+      // Handle bare "linkedin.com/..." too
+      const httpsCandidate2 = ensureHttpsForDomain(value, "linkedin.com");
+      if (httpsCandidate2) return httpsCandidate2.endsWith("/") ? httpsCandidate2 : `${httpsCandidate2}/`;
+      const slug = stripDomain(value.replace(/^@/, "")).replace(/^\/+/, "");
+      const url = `https://www.linkedin.com/in/${slug}`;
+      return url.endsWith("/") ? url : `${url}/`;
+    }
+    case "x-mastodon": {
+      const httpsCandidate = ensureHttpsForDomain(value, "mastodon.social");
+      if (httpsCandidate) return httpsCandidate;
+      let slug = stripDomain(value).replace(/^\/+/, "");
+      if (!slug.startsWith("@")) slug = `@${slug}`;
+      return `https://mastodon.social/${slug}`;
+    }
+    default:
+      return value;
+  }
+};
+
 const SocialMediaIcons: React.FC<{ context: PluginContext }> = ({
   context,
 }) => {
@@ -70,7 +131,8 @@ const SocialMediaIcons: React.FC<{ context: PluginContext }> = ({
         {socialLinks.map((ext: any) => {
           const extName = ext._meta.id;
           const config = SOCIAL_ICONS[extName];
-          const url = ext._json;
+          const raw = ext._json;
+          const url = resolveSocialUrl(extName, typeof raw === "string" ? raw : String(raw));
 
           return (
             <SocialLink

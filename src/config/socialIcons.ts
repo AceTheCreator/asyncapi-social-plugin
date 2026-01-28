@@ -1,5 +1,5 @@
 import React from "react";
-import { TwitterIcon, LinkedInIcon, GitHubIcon, Mastodon } from "../icons";
+import { TwitterIcon, LinkedInIcon, GitHubIcon, Mastodon, InstagramIcon } from "../icons";
 
 /**
  * Social media icon configuration
@@ -13,6 +13,15 @@ import { TwitterIcon, LinkedInIcon, GitHubIcon, Mastodon } from "../icons";
 
 export interface SocialIconConfig {
   icon: React.FC;
+  baseUrl: string;
+  /** Optional static path segment before the slug, e.g. 'in/' for LinkedIn */
+  pathPrefix?: string;
+  /** If true, ensure the final URL ends with a slash */
+  appendTrailingSlash?: boolean;
+  /** If true (default), remove a leading '@' from provided values */
+  stripLeadingAt?: boolean;
+  /** Optional prefix to add before the slug (after pathPrefix), e.g. '@' for Mastodon */
+  slugPrefix?: string;
   colors: {
     default: string;
     hover: string;
@@ -34,6 +43,7 @@ export interface SocialIconConfig {
 export const SOCIAL_ICONS: Record<string, SocialIconConfig> = {
   "x-x": {
     icon: TwitterIcon,
+    baseUrl: "https://x.com/",
     colors: {
       default: "#64748b",
       hover: "#000000",
@@ -42,6 +52,9 @@ export const SOCIAL_ICONS: Record<string, SocialIconConfig> = {
   },
   "x-linkedin": {
     icon: LinkedInIcon,
+    baseUrl: "https://www.linkedin.com/",
+    pathPrefix: "in/",
+    appendTrailingSlash: true,
     colors: {
       default: "#64748b",
       hover: "#0A66C2",
@@ -50,14 +63,29 @@ export const SOCIAL_ICONS: Record<string, SocialIconConfig> = {
   },
   "x-github": {
     icon: GitHubIcon,
+    baseUrl: "https://github.com/",
     colors: {
       default: "#64748b",
       hover: "#24292e",
       border: "#24292e",
     },
   },
+  "x-instagram": {
+    icon: InstagramIcon,
+    baseUrl: "https://www.instagram.com/",
+    appendTrailingSlash: true,
+    colors: {
+      default: "#64748b",
+      hover: "#E1306C",
+      border: "#E1306C",
+    },
+  },
   "x-mastodon": {
     icon: Mastodon,
+    baseUrl: "https://mastodon.social/",
+    // Preserve '@' in path like /@username
+    stripLeadingAt: false,
+    slugPrefix: "@",
     colors: {
       default: "#64748b",
       hover: "#6364FF",
